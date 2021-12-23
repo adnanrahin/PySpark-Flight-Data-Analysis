@@ -18,7 +18,7 @@ def loading_data_set_to_df(path, spark):
           .format("csv")
           .option("header", "true")
           .option("inferSchema", "true")
-          .load(data_source_path + '/flights.csv'))
+          .load(path))
 
     return df
 
@@ -29,13 +29,17 @@ if __name__ == "__main__":
     spark = (SparkSession
              .builder
              .master("local[*]")
-             .config("spark.executor.memory", "6G")
-             .config("spark.driver.memory", "4G")
+             .config("spark.executor.memory", "16G")
+             .config("spark.driver.memory", "16G")
              .appName("FlightDataAnalysis")
              .getOrCreate())
 
     data_source_path = '2015_flights_data'
 
     flightDF = loading_data_set_to_df(path=data_source_path + '/flights.csv', spark=spark)
+    airlineDF = loading_data_set_to_df(path=data_source_path + '/airlines.csv', spark=spark)
+    airportDF = load_data_set_to_rdd(path=data_source_path + '/airports.csv', spark=spark)
 
-    print(flightDF.show(10))
+    flightDF.printSchema()
+
+    spark.stop()
