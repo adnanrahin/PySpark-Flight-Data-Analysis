@@ -23,6 +23,12 @@ def loading_data_set_to_df(path, spark):
     return df
 
 
+def find_all_that_canceled(flightDF, spark):
+    canceled_flight = (
+        flightDF.select('*').where('CANCELLED = 1').collect()
+    )
+
+
 if __name__ == "__main__":
     faulthandler.enable()
 
@@ -40,6 +46,6 @@ if __name__ == "__main__":
     airlineDF = loading_data_set_to_df(path=data_source_path + '/airlines.csv', spark=spark)
     airportDF = load_data_set_to_rdd(path=data_source_path + '/airports.csv', spark=spark)
 
-    flightDF.printSchema()
+    print(flightDF.select('*').where('CANCELLED = 1').show(n=10, truncate=False))
 
     spark.stop()
