@@ -49,4 +49,5 @@ textdata/*
 
 #data
 2015_flights_data/
+transform_data/
 data/

@@ -12,6 +12,13 @@ def load_data_set_to_rdd(path, spark):
     return rdd
 
 
+def data_writer(df, mode, path):
+    (cancelled_flight_df
+     .write
+     .mode(mode)
+     .parquet(path))
+
+
 def loading_data_set_to_df(path, spark):
     df = (spark
           .read
@@ -23,10 +30,12 @@ def loading_data_set_to_df(path, spark):
     return df
 
 
-def find_all_that_canceled(flightDF, spark):
-    canceled_flight = (
-        flightDF.select('*').where('CANCELLED = 1').collect()
-    )
+def find_all_that_canceled(flightDF):
+    canceled_flight = (flightDF
+                       .select('*')
+                       .where('CANCELLED = 1'))
+
+    return canceled_flight
 
 
 if __name__ == "__main__":
@@ -46,6 +55,7 @@ if __name__ == "__main__":
     airlineDF = loading_data_set_to_df(path=data_source_path + '/airlines.csv', spark=spark)
     airportDF = load_data_set_to_rdd(path=data_source_path + '/airports.csv', spark=spark)
 
-    print(flightDF.select('*').where('CANCELLED = 1').show(n=10, truncate=False))
+    cancelled_flight_df = find_all_that_canceled(flightDF)
+    data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
 
     spark.stop()
