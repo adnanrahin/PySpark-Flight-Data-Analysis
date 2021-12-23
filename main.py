@@ -66,6 +66,16 @@ if __name__ == "__main__":
 
     )
 
+    all_cancelled_flights = (
+        join_airline_flights_df.select('*').where('CANCELLED = 1')
+    )
+
+    airline_and_number_flights_cancelled = (
+
+        
+
+    )
+
     join_airline_flights_df.show(10, truncate=True)
 
     spark.stop()
