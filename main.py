@@ -58,4 +58,12 @@ if __name__ == "__main__":
     cancelled_flight_df = find_all_the_flight_that_canceled(flightDF)
     data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
 
+    find_airline_total_number_off_flights_cancelled = (
+
+        flightDF.join(airlineDF, flightDF.AIRLINE == airlineDF.IATA_CODE, 'inner')
+
+    )
+
+    find_airline_total_number_off_flights_cancelled.show(10, truncate=True)
+
     spark.stop()
