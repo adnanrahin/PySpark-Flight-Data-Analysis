@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark import SparkContext
 import faulthandler
 from pyspark.sql.functions import col
-from pyspark.sql.types import IntegerType
+from pyspark.sql.types import IntegerType, StringType, DoubleType, FloatType
 
 
 def load_data_set_to_rdd(path, spark):
