@@ -74,10 +74,14 @@ if __name__ == "__main__":
 
     airline_and_number_flights_cancelled = (
 
-        
+        all_cancelled_flights
+            .groupby('AIRLINE_NAME')
+            .count()
+            .alias('TOTAL_NUMBER_FLIGHTS_CANCELLED')
+
 
     )
 
-    join_airline_flights_df.show(10, truncate=True)
+    airline_and_number_flights_cancelled.show(10, truncate=True)
 
     spark.stop()
