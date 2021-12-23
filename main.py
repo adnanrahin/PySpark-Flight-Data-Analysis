@@ -9,6 +9,7 @@ def load_data_set_to_rdd(path, spark):
            .textFile(path)
            .filter(lambda row: row is not None)
            .filter(lambda row: row != ""))
+
     return rdd
 
 
@@ -38,6 +39,30 @@ def find_all_the_flight_that_canceled(flightDF):
     return canceled_flight
 
 
+def find_airlines_total_number_of_flights_cancelled(flightDF, airlineDF):
+    join_airline_flights_df = (
+        flightDF.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME'),
+                      flightDF.AIRLINE == airlineDF.IATA_CODE,
+                      'inner')
+    )
+
+    all_cancelled_flights = (
+        join_airline_flights_df
+            .select('*')
+            .where('CANCELLED = 1')
+    )
+
+    airline_and_number_flights_cancelled = (
+        all_cancelled_flights
+            .groupby('AIRLINE_NAME')
+            .count()
+            .withColumnRenamed('count', 'TOTAL_NUMBER_FLIGHTS_CANCELLED')
+            .orderBy('TOTAL_NUMBER_FLIGHTS_CANCELLED')
+    )
+
+    return airline_and_number_flights_cancelled
+
+
 if __name__ == "__main__":
     faulthandler.enable()
 
@@ -58,30 +83,9 @@ if __name__ == "__main__":
     cancelled_flight_df = find_all_the_flight_that_canceled(flightDF)
     data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
 
-    join_airline_flights_df = (
+    total_flight_cancelled_by_airline_name = find_airlines_total_number_of_flights_cancelled(flightDF=flightDF,
+                                                                                             airlineDF=airlineDF)
 
-        flightDF.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME'),
-                      flightDF.AIRLINE == airlineDF.IATA_CODE,
-                      'inner')
-
-    )
-
-    all_cancelled_flights = (
-        join_airline_flights_df
-            .select('*')
-            .where('CANCELLED = 1')
-    )
-
-    airline_and_number_flights_cancelled = (
-
-        all_cancelled_flights
-            .groupby('AIRLINE_NAME')
-            .count()
-            .alias('TOTAL_NUMBER_FLIGHTS_CANCELLED')
-
-
-    )
-
-    airline_and_number_flights_cancelled.show(10, truncate=True)
+    total_flight_cancelled_by_airline_name.show(10, truncate=True)
 
     spark.stop()
