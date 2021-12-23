@@ -1,6 +1,8 @@
 from pyspark.sql import SparkSession
 from pyspark import SparkContext
 import faulthandler
+from pyspark.sql.functions import col
+from pyspark.sql.types import IntegerType
 
 
 def load_data_set_to_rdd(path, spark):
@@ -58,6 +60,8 @@ def find_airlines_total_number_of_flights_cancelled(flightDF, airlineDF):
             .count()
             .withColumnRenamed('count', 'TOTAL_NUMBER_FLIGHTS_CANCELLED')
             .orderBy('TOTAL_NUMBER_FLIGHTS_CANCELLED')
+            .withColumn('TOTAL_NUMBER_FLIGHTS_CANCELLED', col('TOTAL_NUMBER_FLIGHTS_CANCELLED')
+                        .cast(IntegerType()))
     )
 
     return airline_and_number_flights_cancelled
@@ -85,6 +89,7 @@ if __name__ == "__main__":
 
     total_flight_cancelled_by_airline_name = find_airlines_total_number_of_flights_cancelled(flightDF=flightDF,
                                                                                              airlineDF=airlineDF)
+    data_writer(total_flight_cancelled_by_airline_name, 'overwrite', './transform_data/airline_total_flights_cancelled')
 
     total_flight_cancelled_by_airline_name.show(10, truncate=True)
 
