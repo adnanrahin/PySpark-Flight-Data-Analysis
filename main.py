@@ -61,7 +61,7 @@ def find_airlines_total_number_of_flights_cancelled(flightDF, airlineDF):
             .withColumnRenamed('count', 'TOTAL_NUMBER_FLIGHTS_CANCELLED')
             .orderBy('TOTAL_NUMBER_FLIGHTS_CANCELLED')
             .withColumn('TOTAL_NUMBER_FLIGHTS_CANCELLED', col('TOTAL_NUMBER_FLIGHTS_CANCELLED')
-                        .cast(IntegerType()))
+                        .cast(StringType()))
     )
 
     return airline_and_number_flights_cancelled
@@ -84,13 +84,15 @@ if __name__ == "__main__":
     airlineDF = loading_data_set_to_df(path=data_source_path + '/airlines.csv', spark=spark)
     airportDF = load_data_set_to_rdd(path=data_source_path + '/airports.csv', spark=spark)
 
-    cancelled_flight_df = find_all_the_flight_that_canceled(flightDF)
-    data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
+    # cancelled_flight_df = find_all_the_flight_that_canceled(flightDF)
+    # data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
 
     total_flight_cancelled_by_airline_name = find_airlines_total_number_of_flights_cancelled(flightDF=flightDF,
                                                                                              airlineDF=airlineDF)
     data_writer(total_flight_cancelled_by_airline_name, 'overwrite', './transform_data/airline_total_flights_cancelled')
 
     total_flight_cancelled_by_airline_name.show(10, truncate=True)
+
+    total_flight_cancelled_by_airline_name.printSchema()
 
     spark.stop()
