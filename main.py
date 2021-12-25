@@ -1,3 +1,5 @@
+import sys
+
 from pyspark.sql import SparkSession
 from pyspark import SparkContext
 import faulthandler
@@ -75,6 +77,9 @@ def find_airlines_total_number_of_flights_cancelled(flightDF, airlineDF):
 
 
 if __name__ == "__main__":
+
+    if len(sys.argv) != 2:
+        raise ValueError('Please Enter A Valid Number to Generate Transformed Data.')
     faulthandler.enable()
 
     spark = (SparkSession
@@ -91,11 +96,14 @@ if __name__ == "__main__":
     airlineDF = loading_data_set_to_df(path=data_source_path + '/airlines.csv', spark=spark)
     airportDF = load_data_set_to_rdd(path=data_source_path + '/airports.csv', spark=spark)
 
-    cancelled_flight_df = find_all_the_flight_that_canceled(flightDF)
-    data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
+    if sys.argv[1] == '1':
+        cancelled_flight_df = find_all_the_flight_that_canceled(flightDF)
+        data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
 
-    total_flight_cancelled_by_airline_name = find_airlines_total_number_of_flights_cancelled(flightDF=flightDF,
-                                                                                             airlineDF=airlineDF)
-    data_writer(total_flight_cancelled_by_airline_name, 'overwrite', './transform_data/airline_total_flights_cancelled')
+    elif sys.argv[1] == '2':
+        total_flight_cancelled_by_airline_name = find_airlines_total_number_of_flights_cancelled(flightDF=flightDF,
+                                                                                                 airlineDF=airlineDF)
+        data_writer(total_flight_cancelled_by_airline_name, 'overwrite',
+                    './transform_data/airline_total_flights_cancelled')
 
     spark.stop()
