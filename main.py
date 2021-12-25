@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark import SparkContext
 import faulthandler
 from pyspark.sql.functions import col
-from pyspark.sql.types import IntegerType, StringType, DoubleType, FloatType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 
 def load_data_set_to_rdd(path, spark):
@@ -60,11 +60,18 @@ def find_airlines_total_number_of_flights_cancelled(flightDF, airlineDF):
             .count()
             .withColumnRenamed('count', 'TOTAL_NUMBER_FLIGHTS_CANCELLED')
             .orderBy('TOTAL_NUMBER_FLIGHTS_CANCELLED')
-            .withColumn('TOTAL_NUMBER_FLIGHTS_CANCELLED', col('TOTAL_NUMBER_FLIGHTS_CANCELLED')
-                        .cast(StringType()))
+    ).collect()
+
+    schema = StructType(
+        [
+            StructField("AIRLINE_NAME", StringType(), True),
+            StructField("TOTAL_NUMBER_OF_FLIGHTS_CANCELLED", StringType(), True)
+        ]
     )
 
-    return airline_and_number_flights_cancelled
+    df = spark.createDataFrame(data=airline_and_number_flights_cancelled, schema=schema)
+
+    return df
 
 
 if __name__ == "__main__":
