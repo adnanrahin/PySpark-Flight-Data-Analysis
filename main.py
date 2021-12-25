@@ -98,8 +98,4 @@ if __name__ == "__main__":
                                                                                              airlineDF=airlineDF)
     data_writer(total_flight_cancelled_by_airline_name, 'overwrite', './transform_data/airline_total_flights_cancelled')
 
-    total_flight_cancelled_by_airline_name.show(10, truncate=True)
-
-    total_flight_cancelled_by_airline_name.printSchema()
-
     spark.stop()
