@@ -76,6 +76,37 @@ def find_airlines_total_number_of_flights_cancelled(flightDF, airlineDF):
     return df
 
 
+def find_total_number_of_departure_flight_from_airport_to(flightDF, airportDF):
+    all_departure_flights = (
+        flightDF
+            .select('*')
+            .where('CANCELLED != 1')
+    )
+
+    join_flights_and_airports = (
+        all_departure_flights.join(airportDF, all_departure_flights.ORIGIN_AIRPORT == airportDF.IATA_CODE, 'inner')
+    )
+
+    total_departure_flights_from_each_airport = (
+        join_flights_and_airports
+            .groupby('AIRPORT')
+            .count()
+            .withColumnRenamed('count', 'TOTAL_NUMBER_DEPARTURE_FLIGHTS')
+            .orderBy('TOTAL_NUMBER_DEPARTURE_FLIGHTS')
+    ).collect()
+
+    schema = StructType(
+        [
+            StructField("AIRPORT_NAME", StringType(), True),
+            StructField("TOTAL_NUMBER_DEPARTURE_FLIGHTS", StringType(), True)
+        ]
+    )
+
+    df = spark.createDataFrame(data=total_departure_flights_from_each_airport, schema=schema)
+
+    return df
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
@@ -94,10 +125,10 @@ if __name__ == "__main__":
 
     flightDF = loading_data_set_to_df(path=data_source_path + '/flights.csv', spark=spark)
     airlineDF = loading_data_set_to_df(path=data_source_path + '/airlines.csv', spark=spark)
-    airportDF = load_data_set_to_rdd(path=data_source_path + '/airports.csv', spark=spark)
+    airportDF = loading_data_set_to_df(path=data_source_path + '/airports.csv', spark=spark)
 
     if sys.argv[1] == '1':
-        cancelled_flight_df = find_all_the_flight_that_canceled(flightDF)
+        cancelled_flight_df = find_all_the_flight_that_canceled(flightDF=flightDF)
         data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
 
     elif sys.argv[1] == '2':
@@ -105,5 +136,11 @@ if __name__ == "__main__":
                                                                                                  airlineDF=airlineDF)
         data_writer(total_flight_cancelled_by_airline_name, 'overwrite',
                     './transform_data/airline_total_flights_cancelled')
+
+    elif sys.argv[1] == '3':
+        total_departure_flights_from_each_airport = find_total_number_of_departure_flight_from_airport_to(
+            flightDF=flightDF, airportDF=airportDF)
+        data_writer(total_departure_flights_from_each_airport, 'overwrite',
+                    './transform_data/total_number_departure_flights')
 
     spark.stop()
