@@ -181,5 +181,4 @@ if __name__ == "__main__":
         data_writer(total_departure_flights_from_each_airport, 'overwrite',
                     './transform_data/most_cancelled_flights_airline')
 
-
     spark.stop()
