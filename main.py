@@ -150,6 +150,13 @@ if __name__ == "__main__":
                 .where('CANCELLED = 1')
         )
 
+        join_flights_and_airline = (
+            cancelled_flights.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME')
+                                   , flightDF.AIRLINE == airlineDF.IATA_CODE, 'inner')
+        )
 
+        find_max_cancelled_airline = join_flights_and_airline()
+
+        join_flights_and_airline.show(10, truncate=True)
 
     spark.stop()
