@@ -143,4 +143,13 @@ if __name__ == "__main__":
         data_writer(total_departure_flights_from_each_airport, 'overwrite',
                     './transform_data/total_number_departure_flights')
 
+    elif sys.argv[1] == '4':
+        cancelled_flights = (
+            flightDF
+                .select('*')
+                .where('CANCELLED = 1')
+        )
+
+
+
     spark.stop()
