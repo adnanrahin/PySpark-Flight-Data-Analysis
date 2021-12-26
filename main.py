@@ -155,8 +155,16 @@ if __name__ == "__main__":
                                    , flightDF.AIRLINE == airlineDF.IATA_CODE, 'inner')
         )
 
-        find_max_cancelled_airline = join_flights_and_airline()
+        find_max_cancelled_airline = (
+            join_flights_and_airline.groupby('AIRLINE_NAME')
+                .count()
+                .withColumnRenamed('count', 'TOTAL_NUMBER_DEPARTURE_FLIGHTS')
+        )
 
-        join_flights_and_airline.show(10, truncate=True)
+        find_max_cancelled_airline.show(10, truncate=True)
+
+        max_cancelled = find_max_cancelled_airline.select('*').agg({'TOTAL_NUMBER_DEPARTURE_FLIGHTS': 'max'})
+
+        max_cancelled.show(10, truncate=True)
 
     spark.stop()
