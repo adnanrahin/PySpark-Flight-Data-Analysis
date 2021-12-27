@@ -1,7 +1,8 @@
+import configparser
 import sys
 
 from pyspark.sql import SparkSession
-from pyspark import SparkContext
+from pyspark import SparkContext, SparkConf
 import faulthandler
 from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
@@ -145,12 +146,20 @@ if __name__ == "__main__":
         raise ValueError('Please Enter A Valid Number to Generate Transformed Data.')
     faulthandler.enable()
 
+    config = configparser.ConfigParser()
+
+    conf = SparkConf().setAppName('FlightDataAnalysis').setMaster('local[*]')
+
+    conf.set('spark.executor.memory', '16G').set('spark.driver.memory', '16G')
+
+    sc = SparkContext(conf=conf)
+
     spark = (SparkSession
-             .builder
-             .master("local[*]")
-             .config("spark.executor.memory", "16G")
-             .config("spark.driver.memory", "16G")
-             .appName("FlightDataAnalysis")
+             .builder.config(conf=conf)
+             # .master("local[*]")
+             # .config("spark.executor.memory", "16G")
+             # .config("spark.driver.memory", "16G")
+             # .appName("FlightDataAnalysis")
              .getOrCreate())
 
     data_source_path = '2015_flights_data'
