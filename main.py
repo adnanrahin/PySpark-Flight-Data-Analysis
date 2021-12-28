@@ -8,7 +8,7 @@ from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 
-def load_data_set_to_rdd(path: str, spark: SparkSession):
+def load_data_set_to_rdd(path: str, spark: SparkSession) -> None:
     rdd = (spark
            .sparkContext
            .textFile(path)
@@ -18,7 +18,7 @@ def load_data_set_to_rdd(path: str, spark: SparkSession):
     return rdd
 
 
-def data_writer(df: DataFrame, mode: str, path: str):
+def data_writer(df: DataFrame, mode: str, path: str) -> None:
     (df
      .write
      .mode(mode)
