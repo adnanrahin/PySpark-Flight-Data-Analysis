@@ -1,6 +1,7 @@
 import configparser
 import sys
 
+from pyspark.rdd import RDD
 from pyspark.sql import SparkSession, DataFrame
 from pyspark import SparkContext, SparkConf
 import faulthandler
@@ -8,7 +9,7 @@ from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 
-def load_data_set_to_rdd(path: str, spark: SparkSession) -> None:
+def load_data_set_to_rdd(path: str, spark: SparkSession) -> RDD:
     rdd = (spark
            .sparkContext
            .textFile(path)
@@ -18,7 +19,7 @@ def load_data_set_to_rdd(path: str, spark: SparkSession) -> None:
     return rdd
 
 
-def data_writer(df: DataFrame, mode: str, path: str) -> None:
+def data_writer_parquet(df: DataFrame, mode: str, path: str) -> None:
     (df
      .write
      .mode(mode)
@@ -172,24 +173,24 @@ if __name__ == "__main__":
 
     if sys.argv[1] == '1':
         cancelled_flight_df = find_all_the_flight_that_canceled(flightDF=flightDF)
-        data_writer(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
+        data_writer_parquet(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
 
     elif sys.argv[1] == '2':
         total_flight_cancelled_by_airline_name = find_airlines_total_number_of_flights_cancelled(flightDF=flightDF,
                                                                                                  airlineDF=airlineDF)
-        data_writer(total_flight_cancelled_by_airline_name, 'overwrite',
-                    './transform_data/airline_total_flights_cancelled')
+        data_writer_parquet(total_flight_cancelled_by_airline_name, 'overwrite',
+                            './transform_data/airline_total_flights_cancelled')
 
     elif sys.argv[1] == '3':
         total_departure_flights_from_each_airport = find_total_number_of_departure_flight_from_airport_to(
             flightDF=flightDF, airportDF=airportDF)
-        data_writer(total_departure_flights_from_each_airport, 'overwrite',
-                    './transform_data/total_number_departure_flights')
+        data_writer_parquet(total_departure_flights_from_each_airport, 'overwrite',
+                            './transform_data/total_number_departure_flights')
 
     elif sys.argv[1] == '4':
         total_departure_flights_from_each_airport = find_max_flight_cancelled_airline(
             flightDF=flightDF, airlineDF=airlineDF)
-        data_writer(total_departure_flights_from_each_airport, 'overwrite',
-                    './transform_data/most_cancelled_flights_airline')
+        data_writer_parquet(total_departure_flights_from_each_airport, 'overwrite',
+                            './transform_data/most_cancelled_flights_airline')
 
     spark.stop()
