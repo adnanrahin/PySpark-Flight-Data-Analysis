@@ -1,14 +1,14 @@
 import configparser
 import sys
 
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, DataFrame
 from pyspark import SparkContext, SparkConf
 import faulthandler
 from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 
-def load_data_set_to_rdd(path, spark):
+def load_data_set_to_rdd(path: str, spark: SparkSession):
     rdd = (spark
            .sparkContext
            .textFile(path)
@@ -18,14 +18,14 @@ def load_data_set_to_rdd(path, spark):
     return rdd
 
 
-def data_writer(df, mode, path):
+def data_writer(df: DataFrame, mode: str, path: str):
     (df
      .write
      .mode(mode)
      .parquet(path))
 
 
-def loading_data_set_to_df(path, spark):
+def loading_data_set_to_df(path: str, spark: SparkSession) -> DataFrame:
     df = (spark
           .read
           .format("csv")
@@ -36,7 +36,7 @@ def loading_data_set_to_df(path, spark):
     return df
 
 
-def find_all_the_flight_that_canceled(flightDF):
+def find_all_the_flight_that_canceled(flightDF: DataFrame) -> DataFrame:
     canceled_flight = (flightDF
                        .select('*')
                        .where('CANCELLED = 1'))
@@ -44,10 +44,10 @@ def find_all_the_flight_that_canceled(flightDF):
     return canceled_flight
 
 
-def find_airlines_total_number_of_flights_cancelled(flightDF, airlineDF):
+def find_airlines_total_number_of_flights_cancelled(flightDF: DataFrame, airlineDF: DataFrame) -> DataFrame:
     join_airline_flights_df = (
         flightDF.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME'),
-                      flightDF.AIRLINE == airlineDF.IATA_CODE,
+                      flightDF['AIRLINE'] == airlineDF['IATA_CODE'],
                       'inner')
     )
 
@@ -77,7 +77,7 @@ def find_airlines_total_number_of_flights_cancelled(flightDF, airlineDF):
     return df
 
 
-def find_total_number_of_departure_flight_from_airport_to(flightDF, airportDF):
+def find_total_number_of_departure_flight_from_airport_to(flightDF: DataFrame, airportDF: DataFrame) -> DataFrame:
     all_departure_flights = (
         flightDF
             .select('*')
@@ -85,7 +85,9 @@ def find_total_number_of_departure_flight_from_airport_to(flightDF, airportDF):
     )
 
     join_flights_and_airports = (
-        all_departure_flights.join(airportDF, all_departure_flights.ORIGIN_AIRPORT == airportDF.IATA_CODE, 'inner')
+        all_departure_flights.join(airportDF,
+                                   all_departure_flights['ORIGIN_AIRPORT'] == airportDF['IATA_CODE'],
+                                   'inner')
     )
 
     total_departure_flights_from_each_airport = (
@@ -108,7 +110,7 @@ def find_total_number_of_departure_flight_from_airport_to(flightDF, airportDF):
     return df
 
 
-def find_max_flight_cancelled_airline(flightDF, airlineDF):
+def find_max_flight_cancelled_airline(flightDF: DataFrame, airlineDF: DataFrame) -> DataFrame:
     cancelled_flights = (
         flightDF
             .select('*')
@@ -117,7 +119,7 @@ def find_max_flight_cancelled_airline(flightDF, airlineDF):
 
     join_flights_and_airline = (
         cancelled_flights.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME')
-                               , flightDF.AIRLINE == airlineDF.IATA_CODE, 'inner')
+                               , flightDF['AIRLINE'] == airlineDF['IATA_CODE'], 'inner')
     )
 
     find_max_cancelled_airline = (
