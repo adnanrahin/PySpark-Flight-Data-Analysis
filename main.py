@@ -173,7 +173,8 @@ if __name__ == "__main__":
 
     if sys.argv[1] == '1':
         cancelled_flight_df = find_all_the_flight_that_canceled(flightDF=flightDF)
-        data_writer_parquet(cancelled_flight_df, 'overwrite', './transform_data/cancelled_flights')
+        data_writer_parquet(cancelled_flight_df, 'overwrite',
+                            './transform_data/cancelled_flights')
 
     elif sys.argv[1] == '2':
         total_flight_cancelled_by_airline_name = find_airlines_total_number_of_flights_cancelled(flightDF=flightDF,
