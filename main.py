@@ -1,6 +1,5 @@
 import configparser
 import sys
-
 from pyspark.rdd import RDD
 from pyspark.sql import SparkSession, DataFrame
 from pyspark import SparkContext, SparkConf
