@@ -163,9 +163,18 @@ def find_total_distance_flown_each_airline(flightDF: DataFrame, airlineDF: DataF
             .groupby(col('AIRLINE_NAME'))
             .agg(sum('DISTANCE').alias('TOTAL_DISTANCE'))
             .orderBy('TOTAL_DISTANCE', ascending=False)
+    ).collect()
+
+    schema = StructType(
+        [
+            StructField("AIRLINE_NAME", StringType(), True),
+            StructField("TOTAL_DISTANCE", StringType(), True)
+        ]
     )
 
-    return total_distance_flown
+    df = spark.createDataFrame(data=total_distance_flown, schema=schema)
+
+    return df
 
 
 if __name__ == "__main__":
