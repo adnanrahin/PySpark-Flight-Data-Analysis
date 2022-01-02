@@ -202,6 +202,11 @@ if __name__ == "__main__":
                                    , flightDF['AIRLINE'] == airlineDF['IATA_CODE'], 'inner')
         )
 
+        columns = join_flights_and_airline.columns
+
+        filter_col = list(filter(lambda x: x != 'AIRLINE_NAME' or x != 'DISTANCE', columns))
+        print(filter_col)
+
         join_flights_and_airline.show(10, True)
 
     spark.stop()
