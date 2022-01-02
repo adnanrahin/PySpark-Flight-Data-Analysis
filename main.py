@@ -194,6 +194,14 @@ if __name__ == "__main__":
                             './transform_data/most_cancelled_flights_airline')
 
     elif sys.argv[1] == '5':
-        
+
+        cancelled_flights = flightDF.select('*').where('CANCELLED == 1')
+
+        join_flights_and_airline = (
+            cancelled_flights.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME')
+                                   , flightDF['AIRLINE'] == airlineDF['IATA_CODE'], 'inner')
+        )
+
+        join_flights_and_airline.show(10, True)
 
     spark.stop()
