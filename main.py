@@ -8,6 +8,7 @@ from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 from pyspark.sql import Row
 from pyspark.sql.functions import sum
+import constant as const
 
 
 def load_data_set_to_rdd(path: str, spark: SparkSession) -> RDD:
@@ -48,8 +49,8 @@ def find_all_the_flight_that_canceled(flightDF: DataFrame) -> DataFrame:
 
 def find_airlines_total_number_of_flights_cancelled(flightDF: DataFrame, airlineDF: DataFrame) -> DataFrame:
     join_airline_flights_df = (
-        flightDF.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME'),
-                      flightDF['AIRLINE'] == airlineDF['IATA_CODE'],
+        flightDF.join(airlineDF.withColumnRenamed(const.AIRLINE, const.AIRLINE_NAME),
+                      flightDF[const.AIRLINE] == airlineDF[const.IATA_CODE],
                       'inner')
     )
 
@@ -61,7 +62,7 @@ def find_airlines_total_number_of_flights_cancelled(flightDF: DataFrame, airline
 
     airline_and_number_flights_cancelled = (
         all_cancelled_flights
-            .groupby('AIRLINE_NAME')
+            .groupby(const.AIRLINE_NAME)
             .count()
             .withColumnRenamed('count', 'TOTAL_NUMBER_FLIGHTS_CANCELLED')
             .orderBy('TOTAL_NUMBER_FLIGHTS_CANCELLED')
@@ -69,8 +70,8 @@ def find_airlines_total_number_of_flights_cancelled(flightDF: DataFrame, airline
 
     schema = StructType(
         [
-            StructField("AIRLINE_NAME", StringType(), True),
-            StructField("TOTAL_NUMBER_OF_FLIGHTS_CANCELLED", StringType(), True)
+            StructField(const.AIRLINE_NAME, StringType(), True),
+            StructField(const.TOTAL_NUMBER_OF_FLIGHTS_CANCELLED, StringType(), True)
         ]
     )
 
@@ -88,7 +89,7 @@ def find_total_number_of_departure_flight_from_airport_to(flightDF: DataFrame, a
 
     join_flights_and_airports = (
         all_departure_flights.join(airportDF,
-                                   all_departure_flights['ORIGIN_AIRPORT'] == airportDF['IATA_CODE'],
+                                   all_departure_flights[const.ORIGIN_AIRPORT] == airportDF[const.IATA_CODE],
                                    'inner')
     )
 
@@ -96,14 +97,14 @@ def find_total_number_of_departure_flight_from_airport_to(flightDF: DataFrame, a
         join_flights_and_airports
             .groupby('AIRPORT')
             .count()
-            .withColumnRenamed('count', 'TOTAL_NUMBER_DEPARTURE_FLIGHTS')
-            .orderBy('TOTAL_NUMBER_DEPARTURE_FLIGHTS')
+            .withColumnRenamed('count', const.TOTAL_NUMBER_DEPARTURE_FLIGHTS)
+            .orderBy(const.TOTAL_NUMBER_DEPARTURE_FLIGHTS)
     ).collect()
 
     schema = StructType(
         [
-            StructField("AIRPORT_NAME", StringType(), True),
-            StructField("TOTAL_NUMBER_DEPARTURE_FLIGHTS", StringType(), True)
+            StructField(const.AIRPORT_NAME, StringType(), True),
+            StructField(const.TOTAL_NUMBER_DEPARTURE_FLIGHTS, StringType(), True)
         ]
     )
 
@@ -120,22 +121,22 @@ def find_max_flight_cancelled_airline(flightDF: DataFrame, airlineDF: DataFrame)
     )
 
     join_flights_and_airline = (
-        cancelled_flights.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME')
-                               , flightDF['AIRLINE'] == airlineDF['IATA_CODE'], 'inner')
+        cancelled_flights.join(airlineDF.withColumnRenamed(const.AIRLINE, const.AIRLINE_NAME)
+                               , flightDF[const.AIRLINE] == airlineDF[const.IATA_CODE], 'inner')
     )
 
     find_max_cancelled_airline = (
-        join_flights_and_airline.groupby('AIRLINE_NAME')
+        join_flights_and_airline.groupby(const.AIRLINE_NAME)
             .count()
-            .withColumnRenamed('count', 'TOTAL_NUMBER_CANCELLED_FLIGHTS')
-            .orderBy(col('TOTAL_NUMBER_CANCELLED_FLIGHTS').desc())
+            .withColumnRenamed('count', const.TOTAL_NUMBER_CANCELLED_FLIGHTS)
+            .orderBy(col(const.TOTAL_NUMBER_CANCELLED_FLIGHTS).desc())
             .limit(1)
     ).collect()
 
     schema = StructType(
         [
-            StructField("AIRLINE_NAME", StringType(), True),
-            StructField("TOTAL_NUMBER_CANCELLED_FLIGHTS", StringType(), True)
+            StructField(const.AIRLINE_NAME, StringType(), True),
+            StructField(const.TOTAL_NUMBER_CANCELLED_FLIGHTS, StringType(), True)
         ]
     )
 
@@ -148,27 +149,27 @@ def find_total_distance_flown_each_airline(flightDF: DataFrame, airlineDF: DataF
     cancelled_flights = flightDF.select('*').where('CANCELLED == 1')
 
     join_flights_and_airline = (
-        cancelled_flights.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME')
-                               , flightDF['AIRLINE'] == airlineDF['IATA_CODE'], 'inner')
+        cancelled_flights.join(airlineDF.withColumnRenamed(const.AIRLINE, const.AIRLINE_NAME)
+                               , flightDF[const.AIRLINE] == airlineDF[const.IATA_CODE], 'inner')
     )
 
     columns_name = join_flights_and_airline.columns
 
-    filter_col = list(filter(lambda x: x != 'AIRLINE_NAME' and x != 'DISTANCE', columns_name))
+    filter_col = list(filter(lambda x: x != const.AIRLINE_NAME and x != const.DISTANCE, columns_name))
 
     new_df = join_flights_and_airline.drop(*filter_col)
 
     total_distance_flown = (
         new_df
-            .groupby(col('AIRLINE_NAME'))
-            .agg(sum('DISTANCE').alias('TOTAL_DISTANCE'))
-            .orderBy('TOTAL_DISTANCE', ascending=False)
+            .groupby(col(const.AIRLINE_NAME))
+            .agg(sum(const.DISTANCE).alias(const.TOTAL_DISTANCE))
+            .orderBy(const.TOTAL_DISTANCE, ascending=False)
     ).collect()
 
     schema = StructType(
         [
-            StructField("AIRLINE_NAME", StringType(), True),
-            StructField("TOTAL_DISTANCE", StringType(), True)
+            StructField(const.AIRLINE_NAME, StringType(), True),
+            StructField(const.TOTAL_DISTANCE, StringType(), True)
         ]
     )
 
