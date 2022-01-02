@@ -6,6 +6,8 @@ from pyspark import SparkContext, SparkConf
 import faulthandler
 from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql import Row
+from pyspark.sql.functions import sum
 
 
 def load_data_set_to_rdd(path: str, spark: SparkSession) -> RDD:
@@ -142,6 +144,30 @@ def find_max_flight_cancelled_airline(flightDF: DataFrame, airlineDF: DataFrame)
     return df
 
 
+def find_total_distance_flown_each_airline(flightDF: DataFrame, airlineDF: DataFrame) -> DataFrame:
+    cancelled_flights = flightDF.select('*').where('CANCELLED == 1')
+
+    join_flights_and_airline = (
+        cancelled_flights.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME')
+                               , flightDF['AIRLINE'] == airlineDF['IATA_CODE'], 'inner')
+    )
+
+    columns_name = join_flights_and_airline.columns
+
+    filter_col = list(filter(lambda x: x != 'AIRLINE_NAME' and x != 'DISTANCE', columns_name))
+
+    new_df = join_flights_and_airline.drop(*filter_col)
+
+    total_distance_flown = (
+        new_df
+            .groupby(col('AIRLINE_NAME'))
+            .agg(sum('DISTANCE').alias('TOTAL_DISTANCE'))
+            .orderBy('TOTAL_DISTANCE', ascending=False)
+    )
+
+    return total_distance_flown
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
@@ -194,19 +220,9 @@ if __name__ == "__main__":
                             './transform_data/most_cancelled_flights_airline')
 
     elif sys.argv[1] == '5':
-
-        cancelled_flights = flightDF.select('*').where('CANCELLED == 1')
-
-        join_flights_and_airline = (
-            cancelled_flights.join(airlineDF.withColumnRenamed('AIRLINE', 'AIRLINE_NAME')
-                                   , flightDF['AIRLINE'] == airlineDF['IATA_CODE'], 'inner')
-        )
-
-        columns = join_flights_and_airline.columns
-
-        filter_col = list(filter(lambda x: x != 'AIRLINE_NAME' or x != 'DISTANCE', columns))
-        print(filter_col)
-
-        join_flights_and_airline.show(10, True)
+        total_distance_flown = find_total_distance_flown_each_airline(
+            flightDF=flightDF, airlineDF=airlineDF)
+        data_writer_parquet(total_distance_flown, 'overwrite',
+                            './transform_data/total_distance_flown_each_airline')
 
     spark.stop()
