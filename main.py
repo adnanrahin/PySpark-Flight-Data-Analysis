@@ -102,7 +102,7 @@ def find_total_number_of_departure_flight_from_airport_to(flightDF: DataFrame, a
             .count()
             .withColumnRenamed('count', const.TOTAL_NUMBER_DEPARTURE_FLIGHTS)
             .orderBy(const.TOTAL_NUMBER_DEPARTURE_FLIGHTS)
-    )..persist(storageLevel=StorageLevel.MEMORY_AND_DISK).collect()
+    ).persist(storageLevel=StorageLevel.MEMORY_AND_DISK).collect()
 
     schema = StructType(
         [
