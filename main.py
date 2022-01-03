@@ -102,7 +102,7 @@ def find_total_number_of_departure_flight_from_airport_to(flightDF: DataFrame, a
             .count()
             .withColumnRenamed('count', const.TOTAL_NUMBER_DEPARTURE_FLIGHTS)
             .orderBy(const.TOTAL_NUMBER_DEPARTURE_FLIGHTS)
-    ).collect()
+    )..persist(storageLevel=StorageLevel.MEMORY_AND_DISK).collect()
 
     schema = StructType(
         [
@@ -134,7 +134,7 @@ def find_max_flight_cancelled_airline(flightDF: DataFrame, airlineDF: DataFrame)
             .withColumnRenamed('count', const.TOTAL_NUMBER_CANCELLED_FLIGHTS)
             .orderBy(col(const.TOTAL_NUMBER_CANCELLED_FLIGHTS).desc())
             .limit(1)
-    ).collect()
+    ).persist(storageLevel=StorageLevel.MEMORY_AND_DISK).collect()
 
     schema = StructType(
         [
@@ -167,7 +167,7 @@ def find_total_distance_flown_each_airline(flightDF: DataFrame, airlineDF: DataF
             .groupby(col(const.AIRLINE_NAME))
             .agg(sum(const.DISTANCE).alias(const.TOTAL_DISTANCE))
             .orderBy(const.TOTAL_DISTANCE, ascending=False)
-    ).collect()
+    ).persist(storageLevel=StorageLevel.MEMORY_AND_DISK).collect()
 
     schema = StructType(
         [
