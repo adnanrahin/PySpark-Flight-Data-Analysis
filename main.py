@@ -202,7 +202,7 @@ def find_average_departure_delay_of_airliner(flightDF: DataFrame, airlineDF: Dat
             .groupby(const.AIRLINE_NAME)
             .agg(sum(const.DEPARTURE_DELAY).alias('TOTAL_DELAY'),
                  count(const.AIRLINE_NAME).alias('TOTAL_DELAYED_FLIGHTS'))
-    )
+    ).persist(storageLevel=StorageLevel.MEMORY_AND_DISK)
 
     result_df = (
         airline_flight_count
