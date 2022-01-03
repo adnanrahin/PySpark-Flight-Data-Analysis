@@ -9,6 +9,8 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 from pyspark.sql import Row
 from pyspark.sql import Column
 from pyspark.sql.functions import sum
+from pyspark.storagelevel import StorageLevel
+
 import constant as const
 
 
@@ -179,6 +181,49 @@ def find_total_distance_flown_each_airline(flightDF: DataFrame, airlineDF: DataF
     return df
 
 
+def find_average_departure_delay_of_airliner(flightDF: DataFrame, airlineDF: DataFrame) -> DataFrame:
+    filter_flight_data = (
+        flightDF.filter(flightDF.DEPARTURE_DELAY is not None and flightDF.DEPARTURE_DELAY > 0)
+    )
+
+    join_flights_and_airline = (
+        filter_flight_data.join(airlineDF.withColumnRenamed(const.AIRLINE, const.AIRLINE_NAME)
+                                , flightDF[const.AIRLINE] == airlineDF[const.IATA_CODE], 'inner')
+    )
+
+    columns_name = join_flights_and_airline.columns
+
+    filter_col = list(filter(lambda x: x != const.AIRLINE_NAME and x != const.DEPARTURE_DELAY, columns_name))
+
+    delayed_flights_df = join_flights_and_airline.drop(*filter_col)
+
+    airline_flight_count = (
+        delayed_flights_df
+            .groupby(const.AIRLINE_NAME)
+            .agg(sum(const.DEPARTURE_DELAY).alias('TOTAL_DELAY'),
+                 count(const.AIRLINE_NAME).alias('TOTAL_DELAYED_FLIGHTS'))
+    )
+
+    result_df = (
+        airline_flight_count
+            .withColumn('AVERAGE', airline_flight_count.TOTAL_DELAY / airline_flight_count.TOTAL_DELAYED_FLIGHTS)
+            .orderBy('AVERAGE', ascending=False)
+    ).persist(storageLevel=StorageLevel.MEMORY_AND_DISK).collect()
+
+    schema = StructType(
+        [
+            StructField(const.AIRLINE_NAME, StringType(), True),
+            StructField(const.TOTAL_DELAY, StringType(), True),
+            StructField(const.TOTAL_DELAYED_FLIGHTS, StringType(), True),
+            StructField(const.AVERAGE, StringType(), True)
+        ]
+    )
+
+    df = spark.createDataFrame(data=result_df, schema=schema)
+
+    return df
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
@@ -237,34 +282,8 @@ if __name__ == "__main__":
                             './transform_data/total_distance_flown_each_airline')
 
     elif sys.argv[1] == '6':
-        filter_flight_data = (
-            flightDF.filter(flightDF.DEPARTURE_DELAY is not None and flightDF.DEPARTURE_DELAY > 0)
-        )
-
-        join_flights_and_airline = (
-            filter_flight_data.join(airlineDF.withColumnRenamed(const.AIRLINE, const.AIRLINE_NAME)
-                                    , flightDF[const.AIRLINE] == airlineDF[const.IATA_CODE], 'inner')
-        )
-
-        columns_name = join_flights_and_airline.columns
-
-        filter_col = list(filter(lambda x: x != const.AIRLINE_NAME and x != const.DEPARTURE_DELAY, columns_name))
-
-        delayed_flights_df = join_flights_and_airline.drop(*filter_col)
-
-        df = (
-            delayed_flights_df
-                .groupby(const.AIRLINE_NAME)
-                .agg(sum(const.DEPARTURE_DELAY).alias('TOTAL_DELAY'),
-                     count(const.AIRLINE_NAME).alias('TOTAL_DELAYED_FLIGHTS'))
-        )
-
-        df2 = (
-            df
-                .withColumn('AVERAGE', df.TOTAL_DELAY / df.TOTAL_DELAYED_FLIGHTS)
-                .orderBy('AVERAGE', ascending=False)
-        )
-
-        df2.show(10, truncate=True)
-
+        total_delayed_average = find_average_departure_delay_of_airliner(
+            flightDF=flightDF, airlineDF=airlineDF)
+        data_writer_parquet(total_delayed_average, 'overwrite',
+                            './transform_data/average_departure_delay_of_airliner')
     spark.stop()
