@@ -4,7 +4,7 @@ from pyspark.rdd import RDD
 from pyspark.sql import SparkSession, DataFrame
 from pyspark import SparkContext, SparkConf
 import faulthandler
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, count
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 from pyspark.sql import Row
 from pyspark.sql import Column
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
     elif sys.argv[1] == '6':
         filter_flight_data = (
-            flightDF.filter(flightDF.DEPARTURE_DELAY is not None and flightDF.DEPARTURE_DELAY >= 0)
+            flightDF.filter(flightDF.DEPARTURE_DELAY is not None and flightDF.DEPARTURE_DELAY > 0)
         )
 
         join_flights_and_airline = (
@@ -250,8 +250,14 @@ if __name__ == "__main__":
 
         filter_col = list(filter(lambda x: x != const.AIRLINE_NAME and x != const.DEPARTURE_DELAY, columns_name))
 
-        new_df = join_flights_and_airline.drop(*filter_col)
+        delayed_flights_df = join_flights_and_airline.drop(*filter_col)
 
-        new_df.show(10, truncate=True)
+        df = (
+            delayed_flights_df
+                .groupby(const.AIRLINE_NAME)
+                .agg(sum(const.DEPARTURE_DELAY), count(const.AIRLINE_NAME))
+        )
+
+        df.show(10, truncate=True)
 
     spark.stop()
