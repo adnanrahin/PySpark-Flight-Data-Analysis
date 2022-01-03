@@ -234,7 +234,9 @@ if __name__ == "__main__":
 
     conf = SparkConf().setAppName('FlightDataAnalysis').setMaster('local[*]')
 
-    conf.set('spark.executor.memory', '16G').set('spark.driver.memory', '16G')
+    conf.set('spark.executor.memory', '16G')
+    conf.set('spark.driver.memory', '16G')
+    conf.set("spark.sql.shuffle.partitions", '200')
 
     sc = SparkContext(conf=conf)
 
