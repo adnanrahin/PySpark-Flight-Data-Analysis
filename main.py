@@ -255,9 +255,16 @@ if __name__ == "__main__":
         df = (
             delayed_flights_df
                 .groupby(const.AIRLINE_NAME)
-                .agg(sum(const.DEPARTURE_DELAY), count(const.AIRLINE_NAME))
+                .agg(sum(const.DEPARTURE_DELAY).alias('TOTAL_DELAY'),
+                     count(const.AIRLINE_NAME).alias('TOTAL_DELAYED_FLIGHTS'))
         )
 
-        df.show(10, truncate=True)
+        df2 = (
+            df
+                .withColumn('AVERAGE', df.TOTAL_DELAY / df.TOTAL_DELAYED_FLIGHTS)
+                .orderBy('AVERAGE', ascending=False)
+        )
+
+        df2.show(10, truncate=True)
 
     spark.stop()
