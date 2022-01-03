@@ -7,6 +7,7 @@ import faulthandler
 from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 from pyspark.sql import Row
+from pyspark.sql import Column
 from pyspark.sql.functions import sum
 import constant as const
 
