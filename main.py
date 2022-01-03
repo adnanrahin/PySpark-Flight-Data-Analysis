@@ -236,4 +236,22 @@ if __name__ == "__main__":
         data_writer_parquet(total_distance_flown, 'overwrite',
                             './transform_data/total_distance_flown_each_airline')
 
+    elif sys.argv[1] == '6':
+        filter_flight_data = (
+            flightDF.filter(flightDF.DEPARTURE_DELAY is not None and flightDF.DEPARTURE_DELAY >= 0)
+        )
+
+        join_flights_and_airline = (
+            filter_flight_data.join(airlineDF.withColumnRenamed(const.AIRLINE, const.AIRLINE_NAME)
+                                    , flightDF[const.AIRLINE] == airlineDF[const.IATA_CODE], 'inner')
+        )
+
+        columns_name = join_flights_and_airline.columns
+
+        filter_col = list(filter(lambda x: x != const.AIRLINE_NAME and x != const.DEPARTURE_DELAY, columns_name))
+
+        new_df = join_flights_and_airline.drop(*filter_col)
+
+        new_df.show(10, truncate=True)
+
     spark.stop()
