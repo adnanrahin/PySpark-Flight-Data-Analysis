@@ -232,14 +232,14 @@ if __name__ == "__main__":
 
     config = configparser.ConfigParser()
 
-    conf = SparkConf().setAppName('FlightDataAnalysis').setMaster('local[*]')
+    conf = SparkConf().setAppName('FlightDataAnalysis').setMaster('spark://172.26.176.1:7077')
 
     conf.set('spark.executor.memory', '16G')
     conf.set('spark.driver.memory', '16G')
     conf.set("spark.sql.shuffle.partitions", '200')
-    conf.set('spark.dynamicAllocation.enabled', 'true')
-    conf.set('spark.dynamicAllocation.minExecutors', '2')
-    conf.set('spark.dynamicAllocation.maxExecutors', '20')
+    # conf.set('spark.dynamicAllocation.enabled', 'true')
+    # conf.set('spark.dynamicAllocation.minExecutors', '2')
+    # conf.set('spark.dynamicAllocation.maxExecutors', '20')
 
     sc = SparkContext(conf=conf)
 
