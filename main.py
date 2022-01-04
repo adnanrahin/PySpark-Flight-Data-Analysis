@@ -237,6 +237,9 @@ if __name__ == "__main__":
     conf.set('spark.executor.memory', '16G')
     conf.set('spark.driver.memory', '16G')
     conf.set("spark.sql.shuffle.partitions", '200')
+    conf.set('spark.dynamicAllocation.enabled', 'true')
+    conf.set('spark.dynamicAllocation.minExecutors', '2')
+    conf.set('spark.dynamicAllocation.maxExecutors', '20')
 
     sc = SparkContext(conf=conf)
 
