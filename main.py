@@ -291,4 +291,4 @@ if __name__ == "__main__":
             flightDF=flightDF, airlineDF=airlineDF)
         data_writer_parquet(total_delayed_average, 'overwrite',
                             './transform_data/average_departure_delay_of_airliner')
-    #spark.stop()
+    spark.stop()
